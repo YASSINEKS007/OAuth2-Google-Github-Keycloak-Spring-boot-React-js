@@ -1,7 +1,8 @@
 package me.projects.backend;
 
-import me.projects.backend.entities.Product;
-import me.projects.backend.services.ProductService;
+
+import me.projects.backend.entities.Customer;
+import me.projects.backend.services.CustomerService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -15,22 +16,19 @@ public class BackendApplication {
     }
 
     @Bean
-    public CommandLineRunner commandLineRunner(ProductService productService) {
+    public CommandLineRunner commandLineRunner(CustomerService customerService) {
         return args -> {
-            productService.createProduct(Product.builder()
-                    .name("Product 1")
-                    .description("Description of Product 1")
-                    .price(1000.0)
+            customerService.createCustomer(Customer.builder()
+                    .name("Customer 1")
+                    .email("customer1@test.com")
                     .build());
-            productService.createProduct(Product.builder()
-                    .name("Product 2")
-                    .description("Description of Product 2")
-                    .price(2000.0)
+            customerService.createCustomer(Customer.builder()
+                    .name("Customer 2")
+                    .email("customer2@test.com")
                     .build());
-            productService.createProduct(Product.builder()
-                    .name("Product 3")
-                    .description("Description of Product 3")
-                    .price(3000.0)
+            customerService.createCustomer(Customer.builder()
+                    .name("Customer 3")
+                    .email("customer3@test.com")
                     .build());
         };
     }

@@ -1,10 +1,10 @@
 package me.projects.backend.repositories;
 
-import me.projects.backend.entities.Product;
+import me.projects.backend.entities.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
 }
