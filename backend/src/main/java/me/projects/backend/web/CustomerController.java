@@ -52,11 +52,8 @@ public class CustomerController {
         Authentication authentication = securityContext.getAuthentication();
         OAuth2AuthenticationToken oAuth2AuthenticationToken = (OAuth2AuthenticationToken) authentication;
         DefaultOidcUser defaultOidcUser = (DefaultOidcUser) oAuth2AuthenticationToken.getPrincipal();
-        System.out.printf("token values : " + defaultOidcUser);
         String jwtTokenValue = defaultOidcUser.getIdToken().getTokenValue();
         RestClient restClient = RestClient.create("http://localhost:8001");
-        System.out.println("***************************************");
-        System.out.println("jwt token value" + jwtTokenValue);
         List<Product> products = restClient.get().uri("/products").headers(header -> header.set(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTokenValue)).retrieve().body(new ParameterizedTypeReference<>() {
         });
         return products;
