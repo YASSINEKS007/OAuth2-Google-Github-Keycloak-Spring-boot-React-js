@@ -1,7 +1,9 @@
 package me.projects.backend.security;
 
+import jakarta.servlet.Filter;
 import lombok.AllArgsConstructor;
 import me.projects.backend.configs.CorsProperties;
+import me.projects.backend.configs.RequestLoggingInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -17,6 +19,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,20 +34,21 @@ public class SecurityConfig {
 
     private CorsProperties corsProperties;
     private ClientRegistrationRepository clientRegistrationRepository;
+    private RequestLoggingInterceptor requestLoggingInterceptor;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+//                .addFilterBefore((Filter) requestLoggingInterceptor, UsernamePasswordAuthenticationFilter.class) // Add before a specific filter
+                .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
                 .headers(hd -> hd.frameOptions(frame -> frame.disable()))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests.requestMatchers("/h2-console/**").permitAll())
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests.anyRequest().authenticated())
                 .oauth2Login(ol -> ol.defaultSuccessUrl("/auth"))
                 .logout(logoutConfigurer -> logoutConfigurer
                         .logoutSuccessHandler((request, response, authentication) -> {
-                            // Clear the security context
                             SecurityContextHolder.clearContext();
-                            // Call the custom logout success handler
                             this.oidcClientInitiatedLogoutSuccessHandler().onLogoutSuccess(request, response, authentication);
                         })
                         .deleteCookies("JSESSIONID")
@@ -54,23 +58,25 @@ public class SecurityConfig {
                 .build();
     }
 
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(corsProperties.getAllowedOrigin()));
+        configuration.setAllowedHeaders(Arrays.asList(corsProperties.getAllowedHeaders()));
+        configuration.setAllowedMethods(Arrays.asList(corsProperties.getAllowedMethods().split(",")));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     private OidcClientInitiatedLogoutSuccessHandler oidcClientInitiatedLogoutSuccessHandler() {
 
         final OidcClientInitiatedLogoutSuccessHandler logoutSuccessHandler =
                 new OidcClientInitiatedLogoutSuccessHandler(this.clientRegistrationRepository);
         logoutSuccessHandler.setPostLogoutRedirectUri("/login");
         return logoutSuccessHandler;
-    }
-
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin(corsProperties.getAllowedOrigin());
-        configuration.addAllowedHeader(corsProperties.getAllowedHeaders());
-        configuration.addAllowedMethod(corsProperties.getAllowedMethods());
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 
     @Bean

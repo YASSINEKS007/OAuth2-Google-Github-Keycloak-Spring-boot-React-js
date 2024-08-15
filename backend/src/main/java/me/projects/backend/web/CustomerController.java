@@ -43,9 +43,7 @@ public class CustomerController {
         customerService.deleteCustomer(id);
     }
 
-
-
-    @GetMapping("/")
+    @GetMapping("/products")
     @PreAuthorize("hasAuthority('USER')")
     public List<Product> getAllProducts() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
